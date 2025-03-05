@@ -29,13 +29,14 @@ export default function Home() {
             Playlists
           </div>
         </nav>
-
-
       </header>
 
-      {/* Main Stuff */}
-      <h1 className="text-4xl font-bold">Hello World :D</h1>
-
+      {/* Main Content */}
+      <main className="flex flex-grow items-center justify-center">
+        <div className="bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-md transition-colors">
+          Go to playlists
+        </div>
+      </main>
 
       {/* Footer */}
       <footer className="p-4 border-t border-gray-800 text-center text-gray-400 bg-gray-900">
@@ -99,4 +100,24 @@ Note: I am not sure why this component spawned a "dev tool" button on the bottom
   bg-gray-900:        color background
 
   Note: did not use flex as it only contains one element, thus vertical stacking works fine here
+*/
+
+/*
+<main className="flex flex-grow items-center justify-center">
+  flex:               turns the <main> container into a flex container
+  flex-grow:          makes the <main> container grow and fill remaining space in its flex container
+  items-center:       vertically center items within main container
+  justify-center:     horizontally center items within main container
+*/
+
+/*
+<div className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-md transition-colors">
+  bg-green-500:         adds a green background
+  hover:bg-green-600:   darkens green background when hovered over 
+  text-white:           color text
+  font-bold:            bold font weight
+  px-6:                 horizontal padding of value 6 in Tailwind's spacing scale
+  py-3:                 vertical padding of value 3 in Tailwind's spacing scale
+  rounded-md:           "rounded medium border": rounds corners
+  transition-colors:    smoothens hover color change
 */
