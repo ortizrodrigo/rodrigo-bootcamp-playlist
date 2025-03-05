@@ -38,6 +38,9 @@ export default function Home() {
 
 
       {/* Footer */}
+      <footer className="p-4 border-t border-gray-800 text-center text-gray-400 bg-gray-900">
+        Web Development at Berkeley
+      </footer>
     </div>
     //<h1 className="text-4xl font-bold">Hello World</h1>
   );
@@ -84,4 +87,16 @@ Note: I am not sure why this component spawned a "dev tool" button on the bottom
 <div className="hover:text-green-400 transition-colors">
   hover:text-green-400:     changes div's text to green when hovered over.
   transition-colors:        smoothens hover color change
+*/
+
+/*
+<footer className="p-4 border-t border-gray-800 text-center text-gray-400 bg-gray-900">
+  p-4:                padding (left, right, top, bottom) of value 4 in Tailwind's spacing scale
+  border-t:           adds a top border
+  border-gray-800:    sets border color to gray
+  text-center:        center text
+  text-gray-400:      color text
+  bg-gray-900:        color background
+
+  Note: did not use flex as it only contains one element, thus vertical stacking works fine here
 */
