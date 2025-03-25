@@ -7,6 +7,7 @@ export default function PlaylistsPage() {
     const { playlists, addPlaylist } = usePlaylist();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [playlistName, setPlaylistName] = useState("");
+    const [playlistDescription, setPlaylistDescription] = useState("");
 
     const handleAddPlaylist = (e: React.FormEvent) => {
         e.preventDefault();
@@ -15,10 +16,12 @@ export default function PlaylistsPage() {
         const newPlaylist = {
             id: Date.now().toString(), // unique ID using timestamp
             name: playlistName,
-            tracks: 0, // empty
+            description: playlistDescription,
+            songs: 0, // empty
         };
-        addPlaylist(newPlaylist, []); // add empty track array
+        addPlaylist(newPlaylist, []); // add empty song array
         setPlaylistName(""); // reset input
+        setPlaylistDescription(""); // reset description
         setIsModalOpen(false); // close modal
     };
 
@@ -36,7 +39,8 @@ export default function PlaylistsPage() {
                 >
                     <div className="p-4">
                         <h3 className="font-bold text-lg truncate">{playlist.name}</h3>
-                        <p className="text-gray-400">{playlist.tracks} tracks</p>
+                        <p className="text-gray-200">{playlist.description}</p>
+                        <p className="text-gray-400">{playlist.songs} songs</p>
                     </div>
                 </Link>
                 ))}
@@ -63,6 +67,13 @@ export default function PlaylistsPage() {
                         value={playlistName}
                         onChange={(e) => setPlaylistName(e.target.value)}
                         placeholder="Enter playlist name"
+                        className="bg-gray-700 text-white p-2 rounded-md w-full"
+                    />
+                    <input
+                        type="text"
+                        value={playlistDescription}
+                        onChange={(e) => setPlaylistDescription(e.target.value)}
+                        placeholder="Enter playlist description"
                         className="bg-gray-700 text-white p-2 rounded-md w-full"
                     />
                     <button
