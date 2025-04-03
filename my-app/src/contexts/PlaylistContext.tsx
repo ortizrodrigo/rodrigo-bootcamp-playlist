@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface Playlist {
     id: string;
@@ -25,36 +25,25 @@ interface PlaylistContextType {
 
 const PlaylistContext = createContext<PlaylistContextType | undefined>(undefined);
 
-const SAMPLE_PLAYLISTS: Playlist[] = [
-    { 
-        id: "1", 
-        name: "Retreat", 
-        description: "for the car ride",
-        songs: 3 
-    },
-    { 
-        id: "2", 
-        name: "Party", 
-        description: "get the party started",
-        songs: 2 
-    },
-];
-
-const SAMPLE_SONGS: { [key: string]: Song[] } = {
-    "1": [
-        { id: "101", title: "Party Rock Anthem", artist: "LMFAO", duration: "4:23" },
-        { id: "102", title: "I Gotta Feeling", artist: "The Black Eyed Peas", duration: "4:49" },
-        { id: "103", title: "Can't Stop the Feeling!", artist: "Justin Timberlake", duration: "4:45" },
-    ],
-    "2": [
-        { id: "201", title: "Get Lucky", artist: "Daft Punk ft. Pharrell Williams", duration: "6:09" },
-        { id: "202", title: "Don't Stop the Music", artist: "Rihanna", duration: "4:27" },
-    ],
-};
-
 export function PlaylistProvider({ children }: { children: ReactNode }) {
-    const [playlists, setPlaylists] = useState<Playlist[]>(SAMPLE_PLAYLISTS);
-    const [songs, setSongs] = useState<{ [key: string]: Song[] }>(SAMPLE_SONGS);
+    const [playlists, setPlaylists] = useState<Playlist[]>([]);
+    const [songs, setSongs] = useState<{ [key: string]: Song[] }>({});
+
+    // fetch playlist data from the API on component mount
+    useEffect(() => {
+        async function fetchPlaylists() {
+            try {
+                const response = await fetch("/api/playlists");
+                if (!response.ok) throw new Error("Failed to fetch playlists");
+                const data = await response.json();
+                setPlaylists(data.playlists);
+                setSongs(data.songs);
+            } catch (error) {
+                console.error("Error fetching playlists:", error);
+            }
+        }
+        fetchPlaylists();
+    }, []);
 
     const addPlaylist = (newPlaylist: Playlist, newSongs: Song[]) => {
         setPlaylists((prev) => [...prev, newPlaylist]);
