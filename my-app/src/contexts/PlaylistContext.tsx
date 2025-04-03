@@ -1,108 +1,113 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from "react";
 
-const INITIAL_PLAYLISTS = [
-  { id: "1", name: "Coding Focus", tracks: 5},
-  { id: "2", name: "Study Beats", tracks: 4},
-];
+interface Playlist {
+    id: string;
+    name: string;
+    description: string;
+    songs: number;
+}
 
-const INITIAL_TRACKS = {
-  "1": [
-    { id: "101", title: "Focus Mode", artist: "CodeMaster", duration: "3:45" },
-    { id: "102", title: "Algorithm Flow", artist: "ByteBeats", duration: "4:12" },
-    { id: "103", title: "Recursive Dreams", artist: "StackOverflow", duration: "3:33" },
-    { id: "104", title: "Function Harmony", artist: "DevOps", duration: "2:55" },
-    { id: "105", title: "Binary Sunset", artist: "GitMaster", duration: "3:22" },
-  ],
-  "2": [
-    { id: "201", title: "Study Session", artist: "BrainWave", duration: "4:20" },
-    { id: "202", title: "Deep Learning", artist: "Neural Network", duration: "3:15" },
-    { id: "203", title: "Midnight Oil", artist: "Cramming", duration: "2:45" },
-    { id: "204", title: "Final Countdown", artist: "Exam Ready", duration: "3:50" },
-  ],
-};
+interface Song {
+    id: string;
+    title: string;
+    artist: string;
+    duration: string;
+}
 
-type Playlist = {
-  id: string;
-  name: string;
-  tracks: number;
-};
-
-type Track = {
-  id: string;
-  title: string;
-  artist: string;
-  duration: string;
-};
-
-type PlaylistContextType = {
-  playlists: Playlist[];
-  getPlaylist: (id: string) => Playlist | undefined;
-  getPlaylistTracks: (id: string) => Track[];
-  createPlaylist: (name: string) => void;
-  addTrackToPlaylist: (playlistId: string, track: Track) => void;
-};
+interface PlaylistContextType {
+    playlists: Playlist[];
+    songs: { [key: string]: Song[] };
+    addPlaylist: (newPlaylist: Playlist, newSongs: Song[]) => void;
+    editPlaylist: (id: string, updatedPlaylist: Partial<Playlist>) => void;
+    addSong: (playlistId: string, newSong: Song) => void;
+    deleteSong: (playlistId: string, songId: string) => void;
+}
 
 const PlaylistContext = createContext<PlaylistContextType | undefined>(undefined);
 
+const SAMPLE_PLAYLISTS: Playlist[] = [
+    { 
+        id: "1", 
+        name: "Retreat", 
+        description: "for the car ride",
+        songs: 3 
+    },
+    { 
+        id: "2", 
+        name: "Party", 
+        description: "get the party started",
+        songs: 2 
+    },
+];
+
+const SAMPLE_SONGS: { [key: string]: Song[] } = {
+    "1": [
+        { id: "101", title: "Party Rock Anthem", artist: "LMFAO", duration: "4:23" },
+        { id: "102", title: "I Gotta Feeling", artist: "The Black Eyed Peas", duration: "4:49" },
+        { id: "103", title: "Can't Stop the Feeling!", artist: "Justin Timberlake", duration: "4:45" },
+    ],
+    "2": [
+        { id: "201", title: "Get Lucky", artist: "Daft Punk ft. Pharrell Williams", duration: "6:09" },
+        { id: "202", title: "Don't Stop the Music", artist: "Rihanna", duration: "4:27" },
+    ],
+};
+
 export function PlaylistProvider({ children }: { children: ReactNode }) {
-  const [playlists, setPlaylists] = useState<Playlist[]>(INITIAL_PLAYLISTS);
-  const [tracks, setTracks] = useState<Record<string, Track[]>>(INITIAL_TRACKS);
+    const [playlists, setPlaylists] = useState<Playlist[]>(SAMPLE_PLAYLISTS);
+    const [songs, setSongs] = useState<{ [key: string]: Song[] }>(SAMPLE_SONGS);
 
-  const getPlaylist = (id: string) => {
-    return playlists.find(playlist => playlist.id === id);
-  };
-
-  const getPlaylistTracks = (id: string) => {
-    return tracks[id] || [];
-  };
-
-  const createPlaylist = (name: string) => {
-    const newId = String(Date.now());
-    const newPlaylist = {
-      id: newId,
-      name,
-      tracks: 0,
+    const addPlaylist = (newPlaylist: Playlist, newSongs: Song[]) => {
+        setPlaylists((prev) => [...prev, newPlaylist]);
+        setSongs((prev) => ({ ...prev, [newPlaylist.id]: newSongs }));
     };
-    
-    setPlaylists([...playlists, newPlaylist]);
-    setTracks({
-      ...tracks,
-      [newId]: []
-    });
-  };
 
-  const addTrackToPlaylist = (playlistId: string, track: Track) => {
-    const playlistTracks = [...(tracks[playlistId] || []), track];
-    
-    setTracks({
-      ...tracks,
-      [playlistId]: playlistTracks
-    });
-    
-    setPlaylists(playlists.map(playlist => 
-      playlist.id === playlistId 
-        ? { ...playlist, tracks: playlistTracks.length }
-        : playlist
-    ));
-  };
+    const editPlaylist = (id: string, updatedPlaylist: Partial<Playlist>) => {
+        setPlaylists((prev) =>
+            prev.map((playlist) => playlist.id === id ? { ...playlist, ...updatedPlaylist } : playlist)
+        );
+    };
 
-  return (
-    <PlaylistContext.Provider value={{
-      playlists,
-      getPlaylist,
-      getPlaylistTracks,
-      createPlaylist,
-      addTrackToPlaylist
-    }}>
-      {children}
-    </PlaylistContext.Provider>
-  );
+    const addSong = (playlistId: string, newSong: Song) => {
+        setSongs((prev) => ({
+            ...prev,
+            [playlistId]: [...(prev[playlistId] || []), newSong],
+        }));
+        
+        setPlaylists((prev) =>
+            prev.map((playlist) =>
+                playlist.id === playlistId
+                    ? { ...playlist, songs: (playlist.songs || 0) + 1 }
+                    : playlist
+            )
+        );
+    };
+
+    const deleteSong = (playlistId: string, songId: string) => {
+        setSongs((prev) => ({
+            ...prev,
+            [playlistId]: (prev[playlistId] || []).filter((song) => song.id !== songId),
+        }));
+        
+        setPlaylists((prev) =>
+            prev.map((playlist) =>
+                playlist.id === playlistId
+                    ? { ...playlist, songs: Math.max((playlist.songs || 0) - 1, 0) }
+                    : playlist
+            )
+        );
+    };
+
+    return (
+        <PlaylistContext.Provider value={{ playlists, songs: songs, addPlaylist, editPlaylist, addSong, deleteSong }}>
+            {children}
+        </PlaylistContext.Provider>
+    );
 }
 
 export function usePlaylist() {
-  const context = useContext(PlaylistContext);
-  if (context === undefined) {
-    throw new Error('usePlaylist must be used within a PlaylistProvider');
-  }
-  return context;
+    const context = useContext(PlaylistContext);
+    if (!context) {
+        throw new Error("usePlaylist must be used within a PlaylistProvider");
+    }
+    return context;
 }
