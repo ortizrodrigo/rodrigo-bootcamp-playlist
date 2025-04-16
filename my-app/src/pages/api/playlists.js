@@ -16,13 +16,13 @@ const SAMPLE_PLAYLISTS = [
 
 const SAMPLE_SONGS = {
     "1": [
-        { id: "101", title: "Party Rock Anthem", artist: "LMFAO", duration: "4:23" },
-        { id: "102", title: "I Gotta Feeling", artist: "The Black Eyed Peas", duration: "4:49" },
-        { id: "103", title: "Can't Stop the Feeling!", artist: "Justin Timberlake", duration: "4:45" },
+        { id: "101", title: "Party Rock Anthem", artist: "LMFAO", duration: "04:23" },
+        { id: "102", title: "I Gotta Feeling", artist: "The Black Eyed Peas", duration: "04:49" },
+        { id: "103", title: "Can't Stop the Feeling!", artist: "Justin Timberlake", duration: "04:45" },
     ],
     "2": [
-        { id: "201", title: "Get Lucky", artist: "Daft Punk ft. Pharrell Williams", duration: "6:09" },
-        { id: "202", title: "Don't Stop the Music", artist: "Rihanna", duration: "4:27" },
+        { id: "201", title: "Get Lucky", artist: "Daft Punk ft. Pharrell Williams", duration: "06:09" },
+        { id: "202", title: "Don't Stop the Music", artist: "Rihanna", duration: "04:27" },
     ],
 };
 
