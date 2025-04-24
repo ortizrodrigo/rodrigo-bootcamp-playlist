@@ -14,6 +14,14 @@ interface Song {
     duration: string;
 }
 
+export type SpotifyTrack = {
+    id: string;
+    title: string;
+    artist: string;
+    duration: string;
+    image?: string;
+};
+
 interface PlaylistContextType {
     playlists: Playlist[];
     songs: { [key: string]: Song[] };

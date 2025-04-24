@@ -1,19 +1,27 @@
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePlaylist } from "@/contexts/PlaylistContext";
 import Modal from "@/components/Modal";
+
+type SpotifyTrack = {
+    id: string;
+    title: string;
+    artist: string;
+    duration: string;
+    image?: string;
+};
 
 export default function PlaylistDetail() {
     const router = useRouter();
     const { id } = router.query;
     const { playlists, songs, editPlaylist, addSong, deleteSong } = usePlaylist();
+
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isAddSongModalOpen, setIsAddSongModalOpen] = useState(false);
+    const [isAddTrackModalOpen, setIsAddTrackModalOpen] = useState(false);
     const [editedName, setEditedName] = useState("");
     const [editedDescription, setEditedDescription] = useState("");
-    const [newSongTitle, setNewSongTitle] = useState("");
-    const [newSongArtist, setNewSongArtist] = useState("");
-    const [newSongDuration, setNewSongDuration] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<SpotifyTrack[]>([]);
 
     const playlist = typeof id === "string" ? playlists.find((p) => p.id === id) : null;
     const playlistSongs = typeof id === "string" ? songs[id] || [] : [];
@@ -25,7 +33,52 @@ export default function PlaylistDetail() {
         }
     }, [playlist]);
 
-    // all hooks are called before early return
+    const searchTracks = useCallback(async (query: string) => {
+        if (!query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/spotify-search?q=${encodeURIComponent(query)}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Search failed:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    errorData,
+                });
+                throw new Error('Search failed');
+            }
+
+            const data = await response.json();
+            setSearchResults(data.tracks || []);
+        } catch (error) {
+            console.error('Error searching tracks:', error);
+            setSearchResults([]);
+        }
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            searchTracks(searchQuery);
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery, searchTracks]);
+
+    const handleAddSpotifyTrack = (track: SpotifyTrack) => {
+        addSong(id as string, {
+            id: track.id,
+            title: track.title,
+            artist: track.artist,
+            duration: track.duration,
+        });
+        setSearchQuery("");
+        setSearchResults([]);
+        setIsAddTrackModalOpen(false); // Close modal after adding
+    };
+
     if (!id || typeof id !== "string") {
         return (
             <main className="flex-grow flex items-center justify-center">
@@ -42,38 +95,17 @@ export default function PlaylistDetail() {
         );
     }
 
-    // handle form submission to update playlist
     const handleEditPlaylist = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!editedName.trim()) return; // no empty names
+        if (!editedName.trim()) return;
 
         editPlaylist(id, {
             name: editedName,
             description: editedDescription,
         });
-        setIsEditModalOpen(false); // close modal
+        setIsEditModalOpen(false);
     };
 
-    // handle form submission to add a new song
-    const handleAddSong = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newSongTitle.trim() || !newSongArtist.trim() || !newSongDuration.trim()) return; // all fields non-empty
-
-        const newSong = {
-            id: Date.now().toString(), // unique ID
-            title: newSongTitle,
-            artist: newSongArtist,
-            duration: newSongDuration,
-        };
-
-        addSong(id, newSong);
-        setNewSongTitle(""); // reset form
-        setNewSongArtist("");
-        setNewSongDuration("");
-        setIsAddSongModalOpen(false); // close modal
-    };
-
-    // handle deleting a song
     const handleDeleteSong = (songId: string) => {
         deleteSong(id, songId);
     };
@@ -90,15 +122,16 @@ export default function PlaylistDetail() {
                         Edit Playlist
                     </button>
                     <button
-                        onClick={() => setIsAddSongModalOpen(true)}
+                        onClick={() => setIsAddTrackModalOpen(true)}
                         className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-md"
                     >
-                        Add Song
+                        Add Track
                     </button>
                 </div>
             </div>
             <p className="text-gray-400 mb-4">{playlist.description}</p>
 
+            {/* Playlist Songs */}
             <div className="bg-gray-900 rounded-md p-4">
                 <table className="w-full">
                     <thead>
@@ -131,7 +164,7 @@ export default function PlaylistDetail() {
                 </table>
             </div>
 
-            {/* edit playlist Modal */}
+            {/* Edit Playlist Modal */}
             <Modal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
@@ -161,41 +194,51 @@ export default function PlaylistDetail() {
                 </form>
             </Modal>
 
-            {/* add song modal */}
+            {/* Add Track Modal */}
             <Modal
-                isOpen={isAddSongModalOpen}
-                onClose={() => setIsAddSongModalOpen(false)}
-                title="Add New Song"
+                isOpen={isAddTrackModalOpen}
+                onClose={() => {
+                    setIsAddTrackModalOpen(false);
+                    setSearchQuery(""); // Reset search when closing
+                    setSearchResults([]);
+                }}
+                title="Add Spotify Track"
             >
-                <form onSubmit={handleAddSong} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4">
                     <input
                         type="text"
-                        value={newSongTitle}
-                        onChange={(e) => setNewSongTitle(e.target.value)}
-                        placeholder="Enter song title"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search Spotify tracks..."
                         className="bg-gray-700 text-white p-2 rounded-md w-full"
                     />
-                    <input
-                        type="text"
-                        value={newSongArtist}
-                        onChange={(e) => setNewSongArtist(e.target.value)}
-                        placeholder="Enter artist name"
-                        className="bg-gray-700 text-white p-2 rounded-md w-full"
-                    />
-                    <input
-                        type="text"
-                        value={newSongDuration}
-                        onChange={(e) => setNewSongDuration(e.target.value)}
-                        placeholder="Enter duration (e.g., 3:45)"
-                        className="bg-gray-700 text-white p-2 rounded-md w-full"
-                    />
-                    <button
-                        type="submit"
-                        className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-md"
-                    >
-                        Add
-                    </button>
-                </form>
+                    {searchResults.length > 0 && (
+                        <div className="bg-gray-900 rounded-md p-4 max-h-64 overflow-y-auto">
+                            {searchResults.map((track) => (
+                                <div
+                                    key={track.id}
+                                    className="flex items-center justify-between py-2 border-b border-gray-800 last:border-b-0"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        {track.image && (
+                                            <img src={track.image} alt={track.title} className="w-10 h-10 rounded" />
+                                        )}
+                                        <div>
+                                            <p className="font-medium">{track.title}</p>
+                                            <p className="text-gray-400 text-sm">{track.artist}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleAddSpotifyTrack(track)}
+                                        className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-md"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </Modal>
         </main>
     );
