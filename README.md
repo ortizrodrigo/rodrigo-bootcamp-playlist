@@ -22,13 +22,13 @@ Below are screenshots of key features in the app:
 
 ### 📋 All Playlists View
 
-<img src="my-app/assets/images/playlists.png" alt="All playlists" width="600"/>
+<img src="my-app/assets/images/playlists_v2.png" alt="All playlists" width="600"/>
 
 ---
 
 ### 🎧 Playlist Example
 
-<img src="my-app/assets/images/playlist_example.png" alt="Playlist example" width="600"/>
+<img src="my-app/assets/images/playlist_example_v2.png" alt="Playlist example" width="600"/>
 
 ---
 
